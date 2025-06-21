@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>👥 User Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    input {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      margin: 0 0 5px;
+    }
+    .card p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>👥 User Dashboard</h1>
+  <input type="text" id="searchInput" placeholder="Search by name..." />
+  <select id="sortSelect">
+    <option value="">-- Sort by --</option>
+    <option value="name">Name</option>
+    <option value="email">Email</option>
+  </select>
+
+  <button id="loadMoreBtn">Load More</button>
+
+
+  <div class="card-container" id="userCards"></div>
+
+  <script>
+    let users = [];
+
+    async function fetchUsers() {
+      const ids = [1, 2, 3, 4, 5,6,7,8,9,10];
+      const urls = ids.map(id => `https://jsonplaceholder.typicode.com/users/${id}`);
+
+      try {
+        const responses = await Promise.all(urls.map(url => fetch(url)));
+        const data = await Promise.all(responses.map(res => res.json()));
+        users = data;
+        renderUsers(users);
+      } catch (err) {
+        console.error("❌ Failed to fetch users", err);
+      }
+    }
+
+    function renderUsers(userArray) {
+      const container = document.getElementById("userCards");
+      container.innerHTML = ""; // clear existing
+
+      userArray.forEach(user => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${user.name}</h3>
+          <p>📧 ${user.email}</p>
+          <p>🏙️ ${user.address.city}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Live Search
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const keyword = e.target.value.toLowerCase();
+      const filtered = users.filter(u => u.name.toLowerCase().includes(keyword));
+      renderUsers(filtered);
+    });
+
+    // Initial load
+    fetchUsers();
+
+    document.getElementById("sortSelect").addEventListener("change", (e) => {
+      const value = e.target.value;
+      const sorted = [...users].sort((a, b) => a[value].localeCompare(b[value]));
+      renderUsers(sorted);
+    });
+
+    async function fetchUsers() {
+      const cached = localStorage.getItem("userData");
+      if (cached) {
+        users = JSON.parse(cached);
+        renderUsers(users);
+        return;
+      }
+
+      try {
+        const ids = [1, 2, 3, 4, 5];
+        const urls = ids.map(id => `https://jsonplaceholder.typicode.com/users/${id}`);
+        const responses = await Promise.all(urls.map(url => fetch(url)));
+        const data = await Promise.all(responses.map(res => res.json()));
+        users = data;
+        localStorage.setItem("userData", JSON.stringify(users));
+        renderUsers(users);
+      } catch (err) {
+        console.error("❌ Failed to fetch users", err);
+      }
+    }
+
+    document.getElementById("loadMoreBtn").addEventListener("click", async () => {
+      const moreIds = [6, 7, 8, 9, 10];
+      const urls = moreIds.map(id => `https://jsonplaceholder.typicode.com/users/${id}`);
+
+      try {
+        const res = await Promise.all(urls.map(url => fetch(url)));
+        const newUsers = await Promise.all(res.map(r => r.json()));
+        users = [...users, ...newUsers];
+        renderUsers(users);
+      } catch (err) {
+        console.log("Failed to load more users");
+      }
+    });
+
+
+  </script>
+
+</body>
+</html>
