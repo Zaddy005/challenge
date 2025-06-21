@@ -1,0 +1,12 @@
+!! Grouping + Summing !!
+
+acc[key] = (acc[key] || 0) + value;
+
+This pattern is gold for:
+
+Reports
+Dashboards
+Analytics
+Grouped UI components
+Invoice totals
+Cart summaries
